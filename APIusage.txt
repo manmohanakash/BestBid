@@ -1,0 +1,41 @@
+
+API USAGE:
+
+ACCOUNT			
+====================================================================================
+REGISTER ACCOUNT: POST localhost:8080/register
+BODY = {"userName":"akash1","password":"testing1","email":"akashmanmohan1@gmail.com"}
+====================================================================================
+LOGIN ACCOUNT: POST localhost:8080/login
+BODY = {"userName":"akash1","password":"testing1"}
+====================================================================================
+LOGOUT ACCOUNT: GET localhost:8080/logout
+====================================================================================
+
+
+PROJECT
+====================================================================================
+ADDING PORJECT: POST localhost:8080/addProject
+BODY = {"projectName":"API for test","description":"Suprise API!","workType":"backend",
+"maximumBudget":1000,deadline = "2021-11-23 00:00:00"}
+====================================================================================
+DELETE PROJECT: DELETE localhost:8080/deleteProject
+BODY  = {"projectId":"3"}
+====================================================================================
+GETTING PROJECTS (URL CAN BE PAGED USING page , size, sort)
+GET: localhost:8080/getMyProjects?page=0
+GET: localhost:8080/getProjectsByType?workType=<YOUR SEARCH>
+GET: localhost:8080/getProductsByPage?page=0&size=2&sort=deadline,desc
+====================================================================================
+
+
+BIDS
+====================================================================================
+GET BIDS OF ACCOUNT: GET localhost:8080/getMyBids<PAGEABLE>
+====================================================================================
+PLACE BID: POST localhost:8080/placeMyBid
+BODY = {"projectId":"2","bidAmount":"500"}
+====================================================================================
+REMOVE A BID: DELETE localhost:8080/removeMyBid
+BODY = {"bidId":"11"}
+====================================================================================
