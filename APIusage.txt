@@ -19,8 +19,7 @@ ADDING PORJECT: POST localhost:8080/addProject
 BODY = {"projectName":"API for test","description":"Suprise API!","workType":"backend",
 "maximumBudget":1000,deadline = "2021-11-23 00:00:00"}
 ====================================================================================
-DELETE PROJECT: DELETE localhost:8080/deleteProject
-BODY  = {"projectId":"3"}
+DELETE PROJECT: DELETE localhost:8080/deleteProject/{projectId}
 ====================================================================================
 GETTING PROJECTS (URL CAN BE PAGED USING page , size, sort)
 GET: localhost:8080/getMyProjects?page=0
@@ -36,6 +35,5 @@ GET BIDS OF ACCOUNT: GET localhost:8080/getMyBids<PAGEABLE>
 PLACE BID: POST localhost:8080/placeMyBid
 BODY = {"projectId":"2","bidAmount":"500"}
 ====================================================================================
-REMOVE A BID: DELETE localhost:8080/removeMyBid
-BODY = {"bidId":"11"}
+REMOVE A BID: DELETE localhost:8080/deleteMyBid/{bidId}
 ====================================================================================
