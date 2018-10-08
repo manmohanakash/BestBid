@@ -21,10 +21,14 @@ BODY = {"projectName":"API for test","description":"Suprise API!","workType":"ba
 ====================================================================================
 DELETE PROJECT: DELETE localhost:8080/deleteProject/{projectId}
 ====================================================================================
-GETTING PROJECTS (URL CAN BE PAGED USING page , size, sort)
-GET: localhost:8080/getMyProjects?page=0
+GETTING PROJECTS 
+GET: localhost:8080/getProject/<Project ID>
+
+CAN BE REQUESTED IN PAGES(Optional- page,size,sort)
 GET: localhost:8080/getProjectsByType?workType=<YOUR SEARCH>
-GET: localhost:8080/getProductsByPage?page=0&size=2&sort=deadline,desc
+GET: localhost:8080/getProjectsByName?workType=<YOUR SEARCH>
+GET: localhost:8080/getProjectsByPage?page=0&size=2&sort=deadline,desc
+GET: localhost:8080/getProjectsWithDealineRemaining?
 ====================================================================================
 
 
@@ -36,4 +40,6 @@ PLACE BID: POST localhost:8080/placeMyBid
 BODY = {"projectId":"2","bidAmount":"500"}
 ====================================================================================
 REMOVE A BID: DELETE localhost:8080/deleteMyBid/{bidId}
+====================================================================================
+GET BIDS FOR PROJECT: GET localhost:8080/getBidsForProject/{projectId} PAGEABLE
 ====================================================================================
