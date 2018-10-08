@@ -35,7 +35,7 @@ public class UserController {
 	
 	
 	@RequestMapping(method=RequestMethod.POST,value="/login", produces = "application/json")
-	public String loginUser(HttpServletRequest request,@RequestBody String body) throws JSONException {
+	public String loginUser(@RequestBody String body) throws JSONException {
 		
 		JSONObject obj = (JSONObject) new JSONTokener(body).nextValue();
 		String userName=obj.get("userName").toString();
@@ -61,8 +61,6 @@ public class UserController {
 					return response.toString();
 				}
 					
-				session = request.getSession();
-				
 				session.setMaxInactiveInterval(60*15);
 				session.setAttribute("User", loggedUser);
 				
@@ -128,7 +126,7 @@ public class UserController {
 		
 
 	@RequestMapping(method=RequestMethod.POST,value="/logout", produces = "application/json")
-	public String logout(HttpSession session) throws JSONException {
+	public String logout() throws JSONException {
 			
 		JSONObject response = new JSONObject();
 		
@@ -148,7 +146,7 @@ public class UserController {
 
 
 	@RequestMapping(method=RequestMethod.GET,value="/getUserDetails", produces = "application/json")
-	public String userDetails(HttpSession session) throws JSONException, JsonProcessingException {
+	public String userDetails() throws JSONException, JsonProcessingException {
 		JSONObject response = new JSONObject();
 		
 		if(session.getAttribute("loggedUser")==null) {
@@ -167,4 +165,5 @@ public class UserController {
 		return response.toString();
 	}
 	
+
 }

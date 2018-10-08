@@ -1,5 +1,6 @@
 package com.example.BestBid.BestBid.Repositorys;
 
+import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -16,6 +17,10 @@ public interface ProjectRepository extends PagingAndSortingRepository<Project,In
 	public Page<Project> findAllByOwnerId(Integer ownerId,Pageable pageable);
 	
 	public Page<Project> findAllByWorkTypeContaining(String workType,Pageable pageable);
+
+	public Page<Project> findAllByProjectNameContaining(String projectName, Pageable pageable);
+
+	public Page<Project> findByDeadlineAfter(Date date, Pageable pageable);
 
 	
 }

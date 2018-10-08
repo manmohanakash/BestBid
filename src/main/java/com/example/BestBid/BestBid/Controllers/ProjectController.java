@@ -141,9 +141,15 @@ public class ProjectController {
 	
 
 	@RequestMapping(method=RequestMethod.GET,value="/getMyProjects", produces = "application/json")
-	public String getMyProjects(HttpSession session,Pageable page) throws JSONException {
+	public String getMyProjects(Pageable page) throws JSONException {
 		
 		JSONObject response = new JSONObject();	
+		
+		if (session.getAttribute("User")==null)  {
+			response.put("type","fail");
+			response.put("message","Not Logged In");
+			return response.toString();
+		}
 		
 		User currentUser = (User) session.getAttribute("User");
 		
@@ -156,11 +162,16 @@ public class ProjectController {
 	}
 
 	
-	@RequestMapping(method=RequestMethod.GET,value="/getProductsByPage", produces = "application/json")
-	public String getProjects(HttpSession session,Pageable page) throws JSONException {
+	@RequestMapping(method=RequestMethod.GET,value="/getProjects", produces = "application/json")
+	public String getProjects(Pageable page) throws JSONException {
 
-		JSONObject response = new JSONObject();
-	
+		JSONObject response = new JSONObject();	
+		
+		if (session.getAttribute("User")==null)  {
+			response.put("type","fail");
+			response.put("message","Not Logged In");
+			return response.toString();
+		}
 		
 		Page<Project> projects = ProjectService.getProjects(page);
 		
@@ -173,10 +184,14 @@ public class ProjectController {
 
 	
 	@RequestMapping(method=RequestMethod.GET,value="/getProjectsByType", produces = "application/json")
-	public String getProjectsByType(HttpSession session,@RequestParam String workType,Pageable page) throws JSONException {
+	public String getProjectsByType(@RequestParam String workType,Pageable page) throws JSONException {
 		
 		JSONObject response = new JSONObject();
-		
+		if (session.getAttribute("User")==null)  {
+			response.put("type","fail");
+			response.put("message","Not Logged In");
+			return response.toString();
+		}
 		
 		Page<Project> projects = ProjectService.getProjectByWorkType(workType,page);
 		
@@ -185,4 +200,41 @@ public class ProjectController {
 		jsonElement.getAsJsonObject().addProperty("type","success");	
 		return jsonElement.toString();
 	}
+	
+	@RequestMapping(method=RequestMethod.GET,value="/getProjectsByName", produces = "application/json")
+	public String getProjectsByName(@RequestParam String projectName,Pageable pageable) throws JSONException {
+		
+		JSONObject response = new JSONObject();
+		if (session.getAttribute("User")==null)  {
+			response.put("type","fail");
+			response.put("message","Not Logged In");
+			return response.toString();
+		}
+		
+		Page<Project> projects = ProjectService.getProjectByName(projectName,pageable);
+		
+		JsonElement jsonElement = new Gson().toJsonTree(projects);
+		jsonElement.getAsJsonObject().addProperty("totalPages",projects.getTotalPages());
+		jsonElement.getAsJsonObject().addProperty("type","success");	
+		return jsonElement.toString();
+	}
+	
+	@RequestMapping(method=RequestMethod.GET,value="/getProjectsWithDealineRemaining", produces = "application/json")
+	public String getProjectsWithDealineRemaining(Pageable pageable) throws JSONException {
+		
+		JSONObject response = new JSONObject();
+		if (session.getAttribute("User")==null)  {
+			response.put("type","fail");
+			response.put("message","Not Logged In");
+			return response.toString();
+		}
+		
+		Page<Project> projects = ProjectService.getProjectsWithDealineRemaining(pageable);
+		
+		JsonElement jsonElement = new Gson().toJsonTree(projects);
+		jsonElement.getAsJsonObject().addProperty("totalPages",projects.getTotalPages());
+		jsonElement.getAsJsonObject().addProperty("type","success");	
+		return jsonElement.toString();
+	}
+	
 }

@@ -49,7 +49,7 @@ public class BidController {
 	
 	
 	@RequestMapping(method=RequestMethod.GET,value="/getMyBids", produces = "application/json")
-	public String getMyBids(HttpSession session,Pageable pageable) throws JSONException, JsonProcessingException {
+	public String getMyBids(Pageable pageable) throws JSONException, JsonProcessingException {
 		
 		JSONObject response = new JSONObject();
 		
@@ -190,8 +190,8 @@ public class BidController {
 	}
 	
 	
-	@RequestMapping(method=RequestMethod.GET,value="/getBisdforProject/{projectId}", produces = "application/json")
-	public String getBidforProject(HttpSession session,@PathVariable Integer projectId,Pageable pageable) throws JSONException, JsonProcessingException {
+	@RequestMapping(method=RequestMethod.GET,value="/getBidsForProject/{projectId}", produces = "application/json")
+	public String getBidforProject(@PathVariable Integer projectId,Pageable pageable) throws JSONException, JsonProcessingException {
 		
 		JSONObject response = new JSONObject();
 		

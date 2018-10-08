@@ -1,5 +1,6 @@
 package com.example.BestBid.BestBid.Services;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,6 +56,16 @@ public class ProjectService {
 	
 	public Page<Project> getProjectByWorkType(String workType,Pageable pageable) {
 		return ProjectRepository.findAllByWorkTypeContaining(workType,pageable);
+	}
+
+
+	public Page<Project> getProjectByName(String projectName, Pageable pageable) {
+		return ProjectRepository.findAllByProjectNameContaining(projectName,pageable);
+	}
+
+
+	public Page<Project> getProjectsWithDealineRemaining(Pageable pageable) {
+		return ProjectRepository.findByDeadlineAfter(new Date(),pageable);
 	}
 
 }
