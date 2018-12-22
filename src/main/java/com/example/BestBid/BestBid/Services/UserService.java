@@ -56,7 +56,7 @@ public class UserService {
 			return "Username should be alphabets";
 		else if(getUserByUserName(user.getUserName()).isPresent())
 			return "Username already exists";
-		else if(user.getEmail().matches(emailRegex))
+		else if(!user.getEmail().matches(emailRegex))
 			return "Enter Valid Email";
 		else if(getUserByEmail(user.getEmail()).isPresent())
 				return "Email already exists";
