@@ -153,7 +153,21 @@ public class Project {
 		this.totalBids = totalBids;
 	}
 
-	
-	
-    
+
+	@Override
+	public String toString() {
+		return "Project{" +
+				"projectId=" + projectId +
+				", projectName='" + projectName + '\'' +
+				", ownerId=" + ownerId +
+				", description='" + description + '\'' +
+				", workType='" + workType + '\'' +
+				", maximumBudget=" + maximumBudget +
+				", lowestBid=" + lowestBid +
+				", lowestBidder=" + lowestBidder +
+				", deadline=" + deadline +
+				", createdAt=" + createdAt +
+				", totalBids=" + totalBids +
+				'}';
+	}
 }

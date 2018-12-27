@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpSession;
 
 import org.json.JSONException;
@@ -45,22 +46,11 @@ public class BidController {
 	
 	@Autowired
 	private ProjectService ProjectService;
-	
-	
-	
+
 	@RequestMapping(method=RequestMethod.GET,value="/getMyBids", produces = "application/json")
 	public String getMyBids(Pageable pageable) throws JSONException, JsonProcessingException {
-		
-		JSONObject response = new JSONObject();
-		
-		if (session.getAttribute("User")==null)  {
-			response.put("type","fail");
-			response.put("message","Not Logged In");
-			return response.toString();
-		}
-		
+
 		User currentUser = (User) session.getAttribute("User");
-		
 		Page<Bid> bids = BidService.getBidsByUserId(currentUser.getUserId(), pageable);
 		
 		JsonElement jsonElement = new Gson().toJsonTree(bids);
@@ -68,7 +58,6 @@ public class BidController {
 		jsonElement.getAsJsonObject().addProperty("type","success");
 		
 		return jsonElement.toString();
-		
 	}
 	
 	
@@ -78,8 +67,7 @@ public class BidController {
 		JSONObject obj = (JSONObject) new JSONTokener(body).nextValue();
 		int projectId = Integer.parseInt(obj.get("projectId").toString());
 		int bidAmount = Integer.parseInt(obj.get("bidAmount").toString());
-		
-		
+
 		JSONObject response = new JSONObject();
 		
 		if (session.getAttribute("User")==null)  {
@@ -109,22 +97,19 @@ public class BidController {
 				if(project.getLowestBid()==null || project.getLowestBid()>bidAmount) {
 					project.setLowestBid(bidAmount);
 					project.setlowestBidder(userId);
-					response.put("message","BID ADDED!");
-				}else 
-					response.put("message","BID ADDED!");
-				
+				}
+				response.put("message","BID ADDED!");
 				ProjectService.updateProject(project);	
 				response.put("type","success" );
 			}else {
 				response.put("type","fail");
-				response.put("message","BID CANNOT BE HIGHER THAN BUDGET!");
+				response.put("message","bid cannot be higher than budget");
 			}	
 		}else {
 			response.put("type","fail");
-			response.put("message","PROJECT DOES NOT EXIST!");	
+			response.put("message","project does not exist");
 		}
-		
-		
+
 		return response.toString();
 	}
 	

@@ -14,10 +14,8 @@ import com.example.BestBid.BestBid.Repositorys.BidRepository;
 @Service
 public class BidService {
 
-	
 	@Autowired
 	private BidRepository BidRepository;
-	
 	
 	public Bid addBid(Bid bid){
 		return BidRepository.save(bid);
@@ -50,5 +48,4 @@ public class BidService {
 	public void deleteBidsForProjectId(int projectId) {
 		BidRepository.deleteByProjectId(projectId);
 	}
-	
 }

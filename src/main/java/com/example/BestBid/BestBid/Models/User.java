@@ -1,67 +1,63 @@
 package com.example.BestBid.BestBid.Models;
 
 import java.util.Date;
+import java.util.Set;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 import javax.validation.constraints.Email;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-
 @Entity
+@Cacheable
 @Table(uniqueConstraints = {@UniqueConstraint(name="email",columnNames = "email"),@UniqueConstraint(name="user_name",columnNames = "userName")})
 public class User {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column( columnDefinition="INTEGER(10) UNSIGNED")
+	@Column(columnDefinition = "INTEGER(10) UNSIGNED")
 	@JsonIgnore
 	private Integer userId;
 
-	@Column(length=25,nullable=false)
+	@Column(length = 25, nullable = false)
 	private String userName;
-	
+
 	@JsonIgnore
-	@Column(length=25,nullable=false)
+	@Column(length = 256, nullable = false)
 	private String password;
-	
+
 	@Email
-	@Column(length=50,nullable=false)
+	@Column(length = 50, nullable = false)
 	private String email;
-	
-	@Column( length=10,nullable=false)
+
+	@Column(length = 10, nullable = false)
 	private String accountStatus;
-	
-	@Column(nullable=false)
+
+	@Column(nullable = false)
 	private Date lastLogin;
-	
-	
-	public User(){}
+
+	@ManyToMany(fetch = FetchType.EAGER)
+	@JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "user_id"),inverseJoinColumns = @JoinColumn(name = "role_name"))
+	private Set<Role> roles;
 
 
-	public User(Integer userId, String userName, String password, String email, String userType, String accountStatus,
-			Date lastLogin) {
-		super();
-		this.userId = userId;
+	public User() {
+	}
+
+	public User(String userName, String password, @Email String email, String accountStatus, Date lastLogin, Set<Role> roles) {
 		this.userName = userName;
 		this.password = password;
 		this.email = email;
 		this.accountStatus = accountStatus;
 		this.lastLogin = lastLogin;
+		this.roles = roles;
 	}
-
 
 	public Integer getUserId() {
 		return userId;
 	}
 
-	public void setUserID(Integer userId) {
+	public void setUserId(Integer userId) {
 		this.userId = userId;
 	}
 
@@ -81,27 +77,6 @@ public class User {
 		this.password = password;
 	}
 
-	public String getAccountStatus() {
-		return accountStatus;
-	}
-
-	public void setAccountStatus(String accountStatus) {
-		this.accountStatus = accountStatus;
-	}
-
-	
-	public Date getLastLoginAsDate(Date lastLogin) {
-		return lastLogin;
-	}
-	
-	public String getLastLogin() {
-		return lastLogin.toString();
-	}
-
-	public void setLastLogin(Date lastLogin) {
-		this.lastLogin = lastLogin;
-	}
-
 	public String getEmail() {
 		return email;
 	}
@@ -110,5 +85,27 @@ public class User {
 		this.email = email;
 	}
 
-	
+	public String getAccountStatus() {
+		return accountStatus;
+	}
+
+	public void setAccountStatus(String accountStatus) {
+		this.accountStatus = accountStatus;
+	}
+
+	public Date getLastLogin() {
+		return lastLogin;
+	}
+
+	public void setLastLogin(Date lastLogin) {
+		this.lastLogin = lastLogin;
+	}
+
+	public Set<Role> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(Set<Role> roles) {
+		this.roles = roles;
+	}
 }

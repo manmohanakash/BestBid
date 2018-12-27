@@ -1,10 +1,12 @@
 package com.example.BestBid.BestBid.Controllers;
 
+import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 
+import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpSession;
 
 import org.json.JSONException;
@@ -13,6 +15,7 @@ import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,8 +31,6 @@ import com.example.BestBid.BestBid.Services.ProjectService;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
-
-
 @CrossOrigin(allowCredentials="true")
 @RestController
 public class ProjectController {
@@ -42,7 +43,6 @@ public class ProjectController {
 	
 	@Autowired
 	private BidService BidService;
-	
 	
 	@RequestMapping(method=RequestMethod.POST,value="/addProject", produces = "application/json")
 	public String addProject(HttpSession session,@RequestBody String body) throws JSONException, ParseException {
@@ -82,26 +82,22 @@ public class ProjectController {
 		response.put("message","Project Added");
 		return response.toString();
 	}
-	
-	
+
 	@RequestMapping(method=RequestMethod.GET,value="/getProject/{projectId}", produces = "application/json")
 	public String getProject(HttpSession session,@PathVariable Integer projectId ) throws JSONException, ParseException {
 
 		JSONObject response = new JSONObject();
-		
 		Optional<Project> project = ProjectService.getProjectByProjectId(projectId);
 		
-		if(project.isPresent())
-			return new Gson().toJson(project);
+		if(project.isPresent())	return new Gson().toJson(project);
 		else
 		{
 			response.put("type", "fail");
+			response.put("message","not found");
 			return response.toString();
 		}
-		
 	}
 
-	
 	@RequestMapping(method=RequestMethod.DELETE,value="/deleteMyProject/{projectId}", produces = "application/json")
 	public String deleteProject(HttpSession session,@PathVariable Integer projectId) throws JSONException, ParseException {
 		
@@ -138,21 +134,11 @@ public class ProjectController {
 		
 		return response.toString();
 	}
-	
 
 	@RequestMapping(method=RequestMethod.GET,value="/getMyProjects", produces = "application/json")
 	public String getMyProjects(Pageable page) throws JSONException {
-		
-		JSONObject response = new JSONObject();	
-		
-		if (session.getAttribute("User")==null)  {
-			response.put("type","fail");
-			response.put("message","Not Logged In");
-			return response.toString();
-		}
-		
+
 		User currentUser = (User) session.getAttribute("User");
-		
 		Page<Project> projects = ProjectService.getProjectByOwnerId(currentUser.getUserId(),page);
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
 		jsonElement.getAsJsonObject().addProperty("totalPages",projects.getTotalPages());
@@ -161,20 +147,10 @@ public class ProjectController {
 		
 	}
 
-	
 	@RequestMapping(method=RequestMethod.GET,value="/getProjects", produces = "application/json")
 	public String getProjects(Pageable page) throws JSONException {
 
-		JSONObject response = new JSONObject();	
-		
-		if (session.getAttribute("User")==null)  {
-			response.put("type","fail");
-			response.put("message","Not Logged In");
-			return response.toString();
-		}
-		
 		Page<Project> projects = ProjectService.getProjects(page);
-		
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
 		jsonElement.getAsJsonObject().addProperty("totalPages",projects.getTotalPages());
 		jsonElement.getAsJsonObject().addProperty("type","success");	
@@ -182,19 +158,10 @@ public class ProjectController {
 		
 	}
 
-	
 	@RequestMapping(method=RequestMethod.GET,value="/getProjectsByType", produces = "application/json")
 	public String getProjectsByType(@RequestParam String workType,Pageable page) throws JSONException {
 		
-		JSONObject response = new JSONObject();
-		if (session.getAttribute("User")==null)  {
-			response.put("type","fail");
-			response.put("message","Not Logged In");
-			return response.toString();
-		}
-		
 		Page<Project> projects = ProjectService.getProjectByWorkType(workType,page);
-		
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
 		jsonElement.getAsJsonObject().addProperty("totalPages",projects.getTotalPages());
 		jsonElement.getAsJsonObject().addProperty("type","success");	
@@ -203,32 +170,17 @@ public class ProjectController {
 	
 	@RequestMapping(method=RequestMethod.GET,value="/getProjectsByName", produces = "application/json")
 	public String getProjectsByName(@RequestParam String projectName,Pageable pageable) throws JSONException {
-		
-		JSONObject response = new JSONObject();
-		if (session.getAttribute("User")==null)  {
-			response.put("type","fail");
-			response.put("message","Not Logged In");
-			return response.toString();
-		}
-		
+
 		Page<Project> projects = ProjectService.getProjectByName(projectName,pageable);
-		
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
 		jsonElement.getAsJsonObject().addProperty("totalPages",projects.getTotalPages());
 		jsonElement.getAsJsonObject().addProperty("type","success");	
 		return jsonElement.toString();
 	}
 	
-	@RequestMapping(method=RequestMethod.GET,value="/getProjectsWithDealineRemaining", produces = "application/json")
-	public String getProjectsWithDealineRemaining(Pageable pageable) throws JSONException {
-		
-		JSONObject response = new JSONObject();
-		if (session.getAttribute("User")==null)  {
-			response.put("type","fail");
-			response.put("message","Not Logged In");
-			return response.toString();
-		}
-		
+	@RequestMapping(method=RequestMethod.GET,value="/getProjectsWithDeadlineRemaining", produces = "application/json")
+	public String getProjectsWithDeadlineRemaining(Pageable pageable) {
+
 		Page<Project> projects = ProjectService.getProjectsWithDealineRemaining(pageable);
 		
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
