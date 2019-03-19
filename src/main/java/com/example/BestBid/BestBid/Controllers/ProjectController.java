@@ -9,6 +9,8 @@ import java.util.Optional;
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpSession;
 
+import com.example.BestBid.BestBid.Services.UserService;
+import com.google.gson.JsonObject;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -43,72 +45,34 @@ public class ProjectController {
 	
 	@Autowired
 	private BidService BidService;
-	
-	@RequestMapping(method=RequestMethod.POST,value="/addProject", produces = "application/json")
-	public String addProject(HttpSession session,@RequestBody String body) throws JSONException, ParseException {
 
-		
-		JSONObject obj = (JSONObject) new JSONTokener(body).nextValue();	
-		String projectName = obj.get("projectName").toString();
-		String description = obj.get("description").toString();
-		String workType = obj.get("workType").toString();
-		String maximumBudget = obj.get("maximumBudget").toString();
-		String deadline = obj.get("deadline").toString();
-		
-		JSONObject response = new JSONObject();
-		
-		if (session.getAttribute("User")==null)  {
-			response.put("type","fail");
-			response.put("message","Not Logged In");
-			return response.toString();
-		}
-		
-		User currentUser = (User) session.getAttribute("User");
-			
-		Project newProject = new Project();
-		newProject.setCreatedAt(new Date());
-		newProject.setProjectName(projectName);
-		newProject.setDescription(description);
-		newProject.setWorkType(workType);
-		newProject.setMaximumBudget(Integer.parseInt(maximumBudget));
-		newProject.setOwnerId(currentUser.getUserId());
-		newProject.setTotalBids(0);
-		
-		SimpleDateFormat formatter=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		newProject.setDeadline(formatter.parse(deadline));
-		
-		ProjectService.addProject(newProject); 
-		response.put("type","success");
-		response.put("message","Project Added");
+	@Autowired
+	private UserService UserService;
+
+	@Secured("ROLE_USER")
+	@RequestMapping(method=RequestMethod.GET,value="/project/{projectId}", produces = "application/json")
+	public String getProject(@PathVariable Integer projectId ) {
+		Optional<Project> project = ProjectService.getProjectByProjectId(projectId);
+		JsonObject response = new JsonObject();
+		if(project.isPresent())	response.add("project",new Gson().toJsonTree(project.get()));
+		else response.addProperty("message","Project does not exist");
 		return response.toString();
 	}
 
-	@RequestMapping(method=RequestMethod.GET,value="/getProject/{projectId}", produces = "application/json")
-	public String getProject(HttpSession session,@PathVariable Integer projectId ) throws JSONException, ParseException {
-
-		JSONObject response = new JSONObject();
-		Optional<Project> project = ProjectService.getProjectByProjectId(projectId);
-		
-		if(project.isPresent())	return new Gson().toJson(project);
-		else
-		{
-			response.put("type", "fail");
-			response.put("message","not found");
-			return response.toString();
-		}
+	@Secured("ROLE_USER")
+	@RequestMapping(method=RequestMethod.POST,value="/project", produces = "application/json")
+	public String addProject(Principal userDetails,@RequestBody Project project) {
+		project.setOwnerId(UserService.getUserByUserName(userDetails.getName()).get().getUserId());
+		return ProjectService.addProject(project);
 	}
 
-	@RequestMapping(method=RequestMethod.DELETE,value="/deleteMyProject/{projectId}", produces = "application/json")
-	public String deleteProject(HttpSession session,@PathVariable Integer projectId) throws JSONException, ParseException {
+
+	@Secured("ROLE_USER")
+	@RequestMapping(method=RequestMethod.DELETE,value="/project/{projectId}", produces = "application/json")
+	public String deleteProject(HttpSession session,@PathVariable Integer projectId) throws JSONException {
 		
 		JSONObject response = new JSONObject();
-		
-		if (session.getAttribute("User")==null)  {
-			response.put("type","fail");
-			response.put("message","Not Logged In");
-			return response.toString();
-		}
-		
+
 		User currentUser = (User) session.getAttribute("User");
 		
 		Optional<Project> projectDb = ProjectService.getProjectByProjectId(projectId);
@@ -118,7 +82,7 @@ public class ProjectController {
 				ProjectService.deleteProject(projectId);
 				
 				BidService.deleteBidsForProjectId(projectId);
-				
+
 				response.put("type","success");
 				response.put("message","Project Deleted");
 			}
@@ -136,7 +100,7 @@ public class ProjectController {
 	}
 
 	@RequestMapping(method=RequestMethod.GET,value="/getMyProjects", produces = "application/json")
-	public String getMyProjects(Pageable page) throws JSONException {
+	public String getMyProjects(Pageable page)  {
 
 		User currentUser = (User) session.getAttribute("User");
 		Page<Project> projects = ProjectService.getProjectByOwnerId(currentUser.getUserId(),page);
@@ -148,7 +112,7 @@ public class ProjectController {
 	}
 
 	@RequestMapping(method=RequestMethod.GET,value="/getProjects", produces = "application/json")
-	public String getProjects(Pageable page) throws JSONException {
+	public String getProjects(Pageable page)  {
 
 		Page<Project> projects = ProjectService.getProjects(page);
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
@@ -159,7 +123,7 @@ public class ProjectController {
 	}
 
 	@RequestMapping(method=RequestMethod.GET,value="/getProjectsByType", produces = "application/json")
-	public String getProjectsByType(@RequestParam String workType,Pageable page) throws JSONException {
+	public String getProjectsByType(@RequestParam String workType,Pageable page)  {
 		
 		Page<Project> projects = ProjectService.getProjectByWorkType(workType,page);
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
@@ -167,9 +131,10 @@ public class ProjectController {
 		jsonElement.getAsJsonObject().addProperty("type","success");	
 		return jsonElement.toString();
 	}
-	
+
+	@Secured("ROLE_ADMIN")
 	@RequestMapping(method=RequestMethod.GET,value="/getProjectsByName", produces = "application/json")
-	public String getProjectsByName(@RequestParam String projectName,Pageable pageable) throws JSONException {
+	public String getProjectsByName(@RequestParam String projectName,Pageable pageable)  {
 
 		Page<Project> projects = ProjectService.getProjectByName(projectName,pageable);
 		JsonElement jsonElement = new Gson().toJsonTree(projects);

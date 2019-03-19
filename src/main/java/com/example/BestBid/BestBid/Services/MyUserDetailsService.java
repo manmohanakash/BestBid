@@ -20,7 +20,8 @@ public class MyUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) {
         Optional<User> user = userRepository.getUserByUserName(username);
-        if (!user.isPresent() && user == null) {
+        System.out.println(user.get().toString());
+        if (!user.isPresent() || user == null) {
             throw new UsernameNotFoundException(username);
         }
         return new MyUserPrincipal(user.get());

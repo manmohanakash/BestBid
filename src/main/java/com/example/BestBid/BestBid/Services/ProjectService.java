@@ -1,10 +1,7 @@
 package com.example.BestBid.BestBid.Services;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
-
-import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,8 +19,19 @@ public class ProjectService {
 	private ProjectRepository ProjectRepository;
 	
 	
-	public Project addProject(Project project) {
-		return ProjectRepository.save(project);
+	public String addProject(Project project) {
+
+		String validate = validate(project);
+
+		if(validate.equals("valid")){
+			project.setTotalBids(0);
+			project.setCreatedAt(new Date());
+			ProjectRepository.save(project);
+			return "created";
+		}
+		else
+			return validate;
+
 	}
 
 	public void deleteProject(Integer projectId) {
@@ -58,6 +66,20 @@ public class ProjectService {
 
 	public Page<Project> getProjectsWithDealineRemaining(Pageable pageable) {
 		return ProjectRepository.findByDeadlineAfter(new Date(),pageable);
+	}
+
+	public String validate(Project project){
+		if(project.getProjectName() == null) return "Project name(projectName) cannot be null";
+		else if(project.getProjectName().equals("")) return "Project name(projectName) cannot be empty";
+
+		else if(project.getMaximumBudget()==null) return "maximumBudget cannot be null or empty";
+		else if(project.getDescription() == null) return "Project Description(description) cannot be null";
+		else if(project.getDescription().equals("")) return "Project Description(description) cannot be null";
+
+		else if(project.getWorkType() == null) return "Project work type(workType) cannot be null";
+		else if(project.getWorkType().equals("")) return "Project work type(workType) cannot be null";
+
+		else return "valid";
 	}
 
 }

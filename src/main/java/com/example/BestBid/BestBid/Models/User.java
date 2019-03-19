@@ -2,11 +2,9 @@ package com.example.BestBid.BestBid.Models;
 
 import java.util.Date;
 import java.util.Set;
-
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Cacheable
@@ -16,13 +14,11 @@ public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(columnDefinition = "INTEGER(10) UNSIGNED")
-	@JsonIgnore
 	private Integer userId;
 
 	@Column(length = 25, nullable = false)
 	private String userName;
 
-	@JsonIgnore
 	@Column(length = 256, nullable = false)
 	private String password;
 
@@ -107,5 +103,18 @@ public class User {
 
 	public void setRoles(Set<Role> roles) {
 		this.roles = roles;
+	}
+
+	@Override
+	public String toString() {
+		return "User{" +
+				"userId=" + userId +
+				", userName='" + userName + '\'' +
+				", password='" + password + '\'' +
+				", email='" + email + '\'' +
+				", accountStatus='" + accountStatus + '\'' +
+				", lastLogin=" + lastLogin +
+				", roles=" + roles +
+				'}';
 	}
 }

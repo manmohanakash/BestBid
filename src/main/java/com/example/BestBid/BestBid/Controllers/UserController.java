@@ -2,18 +2,18 @@ package com.example.BestBid.BestBid.Controllers;
 
 import java.security.Principal;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Optional;
 
+import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpSession;
 
-import com.example.BestBid.BestBid.Models.Role;
-import com.example.BestBid.BestBid.Services.RoleService;
+import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,58 +35,43 @@ public class UserController {
 	private UserService UserService;
 
 	@Autowired
-	private RoleService RoleService;
-
-	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
-	
 
 	@RequestMapping(method=RequestMethod.POST,value="/login", produces = "application/json")
 	public String loginUser(@RequestBody String body) throws JSONException {
-		
-		JSONObject obj = (JSONObject) new JSONTokener(body).nextValue();
-		String userName = obj.get("userName").toString();
-		String password = obj.get("password").toString();
 
 		JSONObject response = new JSONObject();
 
-		Optional<User> currentUser = UserService.getUserByUserName(userName);
-		
-		if(currentUser.isPresent()) {
-			
-			User loggedUser = currentUser.get();
+		User user = new Gson().fromJson(body,User.class);
+		Optional<User> currentUser = UserService.getUserByUserName(user.getUserName());
 
-			System.out.println(loggedUser.getPassword());
-			System.out.println(bCryptPasswordEncoder.encode("123"));
-			
-			if(bCryptPasswordEncoder.matches(loggedUser.getPassword(),password)) {
-					
-				loggedUser.setLastLogin(new Date());
-				UserService.updateUser(loggedUser);
-					
-				
-				if(!loggedUser.getAccountStatus().equalsIgnoreCase("active")) {
-					response.put("type","fail");
-					response.put("message","ACCOUNT "+loggedUser.getAccountStatus());
-					return response.toString();
-				}
-					
-				session.setMaxInactiveInterval(60*15);
-				session.setAttribute("User", loggedUser);
-				
-				response.put("type","success");
-				response.put("message","logged in");
-				
-			}
-			else{
-				response.put("type","fail");
-				response.put("message","Invalid Password");
-			}
-		}
-		else {
+		if(!currentUser.isPresent()){
 			response.put("type","fail");
 			response.put("message","Username doesnot exist");
+			return response.toString();
 		}
+
+		User knownUser = currentUser.get();
+
+		if(!bCryptPasswordEncoder.matches(user.getPassword(),knownUser.getPassword()))
+		{
+			response.put("type","fail");
+			response.put("message","Invalid Password");
+			return response.toString();
+		}
+
+		knownUser.setLastLogin(new Date());
+		UserService.updateUser(knownUser);
+
+		if(!knownUser.getAccountStatus().equalsIgnoreCase("active")) {
+			response.put("type","fail");
+			response.put("message","ACCOUNT "+knownUser.getAccountStatus());
+			return response.toString();
+		}
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(knownUser, null);
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		response.put("type","success");
+		response.put("message","logged in");
 		return response.toString();
 	}
 	
@@ -94,52 +79,24 @@ public class UserController {
 	@RequestMapping(method=RequestMethod.POST,value="/register", produces = "application/json")
 	public String addUser(@RequestBody String body) throws JSONException {
 
-		JSONObject obj = (JSONObject) new JSONTokener(body).nextValue();
-		String userName=obj.get("userName").toString();
-		String password=obj.get("password").toString();
-		String email = obj.get("email").toString();
-
 		JSONObject response = new JSONObject();
-
-		User user = new User();
-
-		if(userName!=null || email!=null || password!=null){
-			user.setUserName(userName);
-			user.setEmail(email);
-			user.setPassword(bCryptPasswordEncoder.encode(password));
-			HashSet<Role> role = new HashSet<>();
-			Role userRole = RoleService.getRolebyRole("ROLE_USER");
-			role.add(userRole);
-			user.setRoles(role);
-			System.out.println(user);
-		}
-		else
-		{
-			response.put("type","fail");
-			response.put("message","Null user object");	
-			return response.toString();
-		}
-
-		String validationMessage = UserService.validateFields(user);
-			
-		user.setAccountStatus("ACTIVE");
-		user.setLastLogin(new Date());
+		User user = new Gson().fromJson(body,User.class);
+		user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+		String status = UserService.addUser(user);
 		
-		if(validationMessage.equals("success")) {		
-			UserService.addUser(user);		
+		if(status.equals("success")) {
 			response.put("type","success");
-			response.put("message","Account created");	
-			
+			response.put("message","Account created");
 		}
 		else {
 			response.put("type","fail");
-			response.put("message",validationMessage);	
+			response.put("message",status);
 		}		
 		
 		return response.toString();	
 	}
 
-	@RequestMapping(method=RequestMethod.POST,value="/logout", produces = "application/json")
+	@RequestMapping(method=RequestMethod.GET,value="/logout", produces = "application/json")
 	public String logout() throws JSONException {
 			
 		JSONObject response = new JSONObject();
@@ -149,7 +106,6 @@ public class UserController {
 			response.put("message","Not Logged In");
 		}
 		else {
-			session.invalidate();
 			response.put("type","success");
 			response.put("message","Logged out");
 		}
@@ -170,15 +126,12 @@ public class UserController {
 	}
 
 	@Secured("ROLE_ADMIN")
-	@RequestMapping(method=RequestMethod.DELETE,value="/deleteUser/{id}", produces = "application/json")
-	public String userDetails(Principal userDetails, @PathVariable Integer id) throws JSONException, JsonProcessingException {
+	@RequestMapping(method=RequestMethod.DELETE,value="/admin/deleteUser/{id}", produces = "application/json")
+	public String userDetails(@PathVariable Integer id) throws JSONException {
 
+		UserService.deleteByUserId(id);
 		JSONObject response = new JSONObject();
-		ObjectWriter write = new ObjectMapper().writer();
 		response.put("type","success");
-		response.put("user",new JSONObject(write.writeValueAsString(userDetails)));
 		return response.toString();
 	}
-	
-
 }
