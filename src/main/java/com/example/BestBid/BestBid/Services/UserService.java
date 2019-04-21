@@ -2,6 +2,7 @@ package com.example.BestBid.BestBid.Services;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 
 import com.example.BestBid.BestBid.Models.Role;
@@ -52,6 +53,10 @@ public class UserService {
 	
 	public Optional<User> getUserByEmail(String userEmail) {
 		return UserRepository.getUserByEmail(userEmail);
+	}
+
+	public Iterable<User> getAllUsers(){
+		return UserRepository.findAll();
 	}
 
 	public void deleteByUserId(int id) {

@@ -20,10 +20,9 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        http.
-                anonymous().disable()
+        http.cors().and()
                 .authorizeRequests()
-                .antMatchers("/users/**").authenticated()
+                .antMatchers("/oauth/token").permitAll()
                 .and().exceptionHandling().accessDeniedHandler(new OAuth2AccessDeniedHandler());
     }
 }

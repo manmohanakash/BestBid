@@ -9,6 +9,8 @@ import java.util.Optional;
 import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpSession;
 
+import com.example.BestBid.BestBid.Models.Bid;
+import com.example.BestBid.BestBid.Models.MyUserPrincipal;
 import com.example.BestBid.BestBid.Services.UserService;
 import com.google.gson.JsonObject;
 import org.json.JSONException;
@@ -18,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,18 +31,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.BestBid.BestBid.Models.Project;
-import com.example.BestBid.BestBid.Models.User;
 import com.example.BestBid.BestBid.Services.BidService;
 import com.example.BestBid.BestBid.Services.ProjectService;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
-@CrossOrigin(allowCredentials="true")
 @RestController
 public class ProjectController {
-
-	@Autowired
-	private HttpSession session;
 	
 	@Autowired
 	private ProjectService ProjectService;
@@ -60,29 +59,23 @@ public class ProjectController {
 	}
 
 	@Secured("ROLE_USER")
-	@RequestMapping(method=RequestMethod.POST,value="/project", produces = "application/json")
+	@RequestMapping(method=RequestMethod.POST,value="/addProject", produces = "application/json")
 	public String addProject(Principal userDetails,@RequestBody Project project) {
 		project.setOwnerId(UserService.getUserByUserName(userDetails.getName()).get().getUserId());
 		return ProjectService.addProject(project);
 	}
 
-
 	@Secured("ROLE_USER")
 	@RequestMapping(method=RequestMethod.DELETE,value="/project/{projectId}", produces = "application/json")
-	public String deleteProject(HttpSession session,@PathVariable Integer projectId) throws JSONException {
-		
+	public String deleteProject(@PathVariable Integer projectId) throws JSONException {
 		JSONObject response = new JSONObject();
-
-		User currentUser = (User) session.getAttribute("User");
-		
+		MyUserPrincipal userDetails = (MyUserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		Optional<Project> projectDb = ProjectService.getProjectByProjectId(projectId);
 		
 		if(projectDb.isPresent()) {
-			if(projectDb.get().getOwnerId()==currentUser.getUserId()) {
+			if(projectDb.get().getOwnerId()==userDetails.getUserId()) {
 				ProjectService.deleteProject(projectId);
-				
 				BidService.deleteBidsForProjectId(projectId);
-
 				response.put("type","success");
 				response.put("message","Project Deleted");
 			}
@@ -94,37 +87,33 @@ public class ProjectController {
 			response.put("type","fail");
 			response.put("message","Project does not exist!");
 		}
-		
-		
 		return response.toString();
 	}
 
+	@Secured("ROLE_USER")
 	@RequestMapping(method=RequestMethod.GET,value="/getMyProjects", produces = "application/json")
 	public String getMyProjects(Pageable page)  {
-
-		User currentUser = (User) session.getAttribute("User");
-		Page<Project> projects = ProjectService.getProjectByOwnerId(currentUser.getUserId(),page);
+		MyUserPrincipal userDetails = (MyUserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Page<Project> projects = ProjectService.getProjectByOwnerId(userDetails.getUserId(),page);
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
 		jsonElement.getAsJsonObject().addProperty("totalPages",projects.getTotalPages());
 		jsonElement.getAsJsonObject().addProperty("type","success");	
 		return jsonElement.toString();
-		
 	}
 
+	@Secured("ROLE_USER")
 	@RequestMapping(method=RequestMethod.GET,value="/getProjects", produces = "application/json")
 	public String getProjects(Pageable page)  {
-
 		Page<Project> projects = ProjectService.getProjects(page);
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
 		jsonElement.getAsJsonObject().addProperty("totalPages",projects.getTotalPages());
 		jsonElement.getAsJsonObject().addProperty("type","success");	
 		return jsonElement.toString();
-		
 	}
 
+	@Secured("ROLE_USER")
 	@RequestMapping(method=RequestMethod.GET,value="/getProjectsByType", produces = "application/json")
 	public String getProjectsByType(@RequestParam String workType,Pageable page)  {
-		
 		Page<Project> projects = ProjectService.getProjectByWorkType(workType,page);
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
 		jsonElement.getAsJsonObject().addProperty("totalPages",projects.getTotalPages());
@@ -132,26 +121,23 @@ public class ProjectController {
 		return jsonElement.toString();
 	}
 
-	@Secured("ROLE_ADMIN")
+	@Secured("ROLE_USER")
 	@RequestMapping(method=RequestMethod.GET,value="/getProjectsByName", produces = "application/json")
 	public String getProjectsByName(@RequestParam String projectName,Pageable pageable)  {
-
 		Page<Project> projects = ProjectService.getProjectByName(projectName,pageable);
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
 		jsonElement.getAsJsonObject().addProperty("totalPages",projects.getTotalPages());
 		jsonElement.getAsJsonObject().addProperty("type","success");	
 		return jsonElement.toString();
 	}
-	
+
+	@Secured("ROLE_USER")
 	@RequestMapping(method=RequestMethod.GET,value="/getProjectsWithDeadlineRemaining", produces = "application/json")
 	public String getProjectsWithDeadlineRemaining(Pageable pageable) {
-
 		Page<Project> projects = ProjectService.getProjectsWithDealineRemaining(pageable);
-		
 		JsonElement jsonElement = new Gson().toJsonTree(projects);
 		jsonElement.getAsJsonObject().addProperty("totalPages",projects.getTotalPages());
 		jsonElement.getAsJsonObject().addProperty("type","success");	
 		return jsonElement.toString();
 	}
-	
 }

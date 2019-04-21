@@ -1,6 +1,10 @@
 package com.example.BestBid.BestBid.Models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -38,6 +42,7 @@ public class Project {
     private Integer lowestBidder;
     
     @Column
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date deadline;
 
     @Column

@@ -29,6 +29,8 @@ public class MyUserPrincipal implements UserDetails {
         return user.getPassword();
     }
 
+    public Integer getUserId() {return  user.getUserId();}
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         final List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
@@ -57,8 +59,6 @@ public class MyUserPrincipal implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
-    //
 
     public User getUser() {
         return user;
